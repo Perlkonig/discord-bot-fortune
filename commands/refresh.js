@@ -8,16 +8,17 @@ module.exports = {
 	name: 'refresh',
     description: 'Reindexes the fortune files',
     args: false,
-    cooldown: 60000,
+    cooldown: 60,
 	execute(message, args, globals) {
         message.channel.send("Refreshing quote database. This might take a minute.");
 
         const delStmt = globals.db.prepare("DELETE FROM quotes WHERE category = ?");
         const addStmt = globals.db.prepare("INSERT INTO quotes (category, quote) VALUES (?, ?)");
-        const addDescStmt = globals.db.prepare("REPLACE INTO descriptions (category) VALUES (?)");
+        const addDescStmt = globals.db.prepare("INSERT OR IGNORE INTO descriptions (category) VALUES (?)");
         const insertMany = globals.db.transaction((data) => {
             for (const obj of data) addStmt.run(obj);
         });            
+        globals.db.prepare("DELETE FROM descriptions WHERE category NOT IN (SELECT DISTINCT(category) FROM quotes)").run();
     
         fs.readdir(dbpath, function (err, files) {
             if (err) {
