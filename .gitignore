@@ -1,5 +1,7 @@
 config.json
 db/
-node_modules
+daemon/
+node_modules/
 
 run.sh
+service*.js
